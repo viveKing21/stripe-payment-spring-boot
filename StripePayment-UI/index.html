@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link href="style.css" rel="stylesheet"/>
+</head>
+<body>
+    <div class="card">
+        <ul id="item_list">Loading</ul>
+        <a href="payment.html">
+            <button>Make Payment</button>
+        </a>
+    </div>
+</body>
+<script>
+    const status = {
+        succeeded: 'SUCCESS',
+        requires_payment_method: 'PENDING'
+    }
+    async function getIntents(){
+        try {
+            const response = await fetch("http://localhost:8080/api/v1/get_intents")
+            const data = await response.json()
+            return data
+        } catch (error) {
+            alert("Something went wrong")
+            console.log(error)
+        }
+    }
+    
+    async function createList(){
+        let intents = await getIntents()
+
+        let container = document.getElementById('item_list')
+
+        container.innerHTML = null
+
+        intents.forEach(intent => {
+            let li = document.createElement('li')
+            let span = document.createElement('span')
+            span.textContent = 'REFUND'
+            
+            if(intent.status != 'succeeded') span.className = 'disabled'
+            else span.onclick = () => refund(intent.id)
+
+            li.textContent = 'Rs. ' + intent.amount + ' - ' + status[intent.status] || ''
+            li.append(span)
+            container.append(li)
+        })
+    }
+
+
+    async function refund(paymentIntentId) {
+        try{
+            const response = await fetch(`http://localhost:8080/api/v1/refund/${paymentIntentId}`)
+            const result = await response.json()
+            if(result.error) throw result.error
+            alert(`Refund initiated ${result.amount}, status ${result.status}`)
+        }catch(e){
+            alert("Already refunded")
+        }
+    }
+
+    createList()
+</script>
+</html>

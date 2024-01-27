@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link href="style.css" rel="stylesheet"/>
+</head>
+<body>
+    <h1>Stripe Payments</h1>
+    <form class="card" onsubmit="makePayment(event, globalThis)">
+        <h3>ENTER DETAILS</h3>
+        <div id="card-mount"></div>
+        <input type="submit" />
+    </form>
+</body>
+<script src="https://js.stripe.com/v3/"></script>
+<script>
+    const clientSecret = new URLSearchParams(location.search).get('clientSecret')
+
+    if(!clientSecret){
+        alert('Invalid page')
+        history.back()
+    }
+
+    const stripe = Stripe("pk_test_51OcpAgSI7DWMYKiZ8XRsYgJXUfxb7J6giLA0280sJjOkc8bTaQvGcqts0kQxWV6qWEfP8C3ya2GpkbKccz6YxrLF00qckaMZbt")
+    const elements = stripe.elements()
+
+    const card = elements.create('card')
+    card.mount("#card-mount")
+
+    async function makePayment(event, form){
+        event.preventDefault()
+        try{
+            let result = await stripe.confirmCardPayment(clientSecret, {
+                payment_method: {
+                    card
+                }
+            });
+            console.log(result);
+            if(result.error) throw result.error
+        }catch(e){
+            alert('Something went wrong')
+            console.error(e)
+        }
+    }
+</script>
+</html>

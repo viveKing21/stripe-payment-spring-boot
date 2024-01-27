@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link href="style.css" rel="stylesheet"/>
+</head>
+<body>
+    <h1>Stripe Payments</h1>
+    <form class="card" onsubmit="getClientSecret(event, this)">
+        <h3>ENTER DETAILS</h3>
+        <input type="number" name="amount" required placeholder="Enter Amount" />
+        <input type="text" name="currency" required placeholder="Currency" value="INR" disabled readonly/>
+        <input type="submit" />
+    </form>
+</body>
+<script>
+    async function getClientSecret(event, form){
+        event.preventDefault()
+
+        try{
+            const response = await fetch('http://localhost:8080/api/v1/create_intent', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    amount: form.amount.value,
+                    currency: form.currency.value
+                })
+            })
+            const { clientSecret } = await response.json()
+            location = 'checkout.html?clientSecret=' + clientSecret
+            
+        }catch(e){
+            alert('Error: ' + e)
+        }
+    }
+</script>
+</html>
